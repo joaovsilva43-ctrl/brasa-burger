@@ -759,31 +759,26 @@ function sendOrder() {
   </script>
 
 <script>
-  // Script de Zoom Global (Captura direta para o modal)
-  function aplicarZoom(e) {
-    // Procura o container do zoom ou a imagem dentro da janela de detalhes
-    const lbz = e.target.closest('.lbz') || document.querySelector('.lbz');
-    const modalAberto = document.getElementById('lb') && document.getElementById('lb').hasAttribute('open');
-
-    // Se a janela de detalhes estiver aberta e clicares na zona da foto
-    if (lbz && (modalAberto || e.target.closest('.lbw'))) {
-      lbz.classList.toggle('z');
+  // Forçar zoom direto na imagem do modal de detalhes
+  document.addEventListener('click', function(e) {
+    const lbz = e.target.closest('.lbz');
+    if (lbz) {
       const img = lbz.querySelector('img');
       if (img) {
-        if (lbz.classList.contains('z')) {
-          img.style.transform = 'scale(2.3)';
-          img.style.cursor = 'zoom-out';
-        } else {
+        // Verifica se já está com zoom
+        const isZoomed = img.style.transform === 'scale(2.3)';
+        if (isZoomed) {
           img.style.transform = 'scale(1)';
-          img.style.cursor = 'zoom-in';
+          img.style.transition = 'transform 0.3s ease';
+          lbz.classList.remove('z');
+        } else {
+          img.style.transform = 'scale(2.3)';
+          img.style.transition = 'transform 0.3s ease';
+          lbz.classList.add('z');
         }
       }
     }
-  }
-
-  // Escuta tanto cliques como toques no ecrã do telemóvel
-  document.addEventListener('click', aplicarZoom, true);
-  document.addEventListener('touchend', aplicarZoom, true);
+  }, true);
 </script>
 
 <link rel="stylesheet" href="patch.css">
