@@ -759,15 +759,11 @@ function sendOrder() {
   </script>
 
 <script>
-  // Script de Zoom para o Brasa Burger
+  // Script definitivo de zoom para a janela de detalhes do Brasa Burger
   document.addEventListener('click', function(e) {
-    const target = e.target.closest('img, .pl, .ad .ic, [data-mb], .ly, .li');
-    if (target) {
-      target.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-      target.style.transform = 'scale(1.2)';
-      setTimeout(() => {
-        target.style.transform = 'scale(1)';
-      }, 350);
+    const zoomContainer = e.target.closest('.lbz');
+    if (zoomContainer) {
+      zoomContainer.classList.toggle('z');
     }
   });
 </script>
