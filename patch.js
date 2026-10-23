@@ -99,5 +99,17 @@ $('dmt').onchange=e=>{FECHADO=e.target.checked;upLoja();toast(FECHADO?'Modo loja
 $('wpf').onclick=()=>toast('Demonstração: em um site real, este botão abriria o WhatsApp da loja');
 new IntersectionObserver(([e])=>$('wpf').classList.toggle('h',e.isIntersecting)).observe($('monte'));
 
+/* 18: LÓGICA DE ZOOM NAS CAMADAS DO HAMBÚRGUER E BATATA */
+document.addEventListener('click', e => {
+  const target = e.target.closest('#mbv img, .pl img, .hero img');
+  if (target) {
+    target.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    target.style.transform = 'scale(1.25)';
+    setTimeout(() => {
+      target.style.transform = 'scale(1)';
+    }, 400);
+  }
+});
+
 upLoja();mbDraw();
 })();
