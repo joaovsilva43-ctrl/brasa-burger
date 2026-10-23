@@ -15,9 +15,6 @@
 <link rel="preload" as="image" href="img/hero/alface.webp">
 <link rel="preload" as="image" href="img/hero/base.webp">
 <style>
-  #mn, #min, .min, .minimum, div[id*="min"], div[class*="min"], .ckw { 
-    display: none !important; 
-  }
   @media (max-width: 768px) {
   .duo, .grid {
     display: flex !important;
@@ -445,7 +442,7 @@ const ZAP='5571900000000';                       /* WhatsApp da loja, com DDI e 
 const HORARIO={dias:[0,2,3,4,5,6],abre:18*60,fecha:23*60+30,utc:-3}; /* 0=dom … 6=sáb · horário de Salvador */
 const BAIRROS=[['Rio Vermelho',5],['Ondina',6],['Barra',7],['Pituba',8],['Itaigara',9]];
 const OUTRO_BAIRRO=12;                           /* taxa para bairros fora da lista */
-const MINIMO=0;                                 /* pedido mínimo (soma dos itens, sem entrega) */
+const MINIMO=25;                                 /* pedido mínimo (soma dos itens, sem entrega) */
 const CUPONS={BRASA10:{pct:10,txt:'10% de desconto'},PRIMEIRA:{val:8,min:40,txt:'R$ 8 off em pedidos a partir de R$ 40'}};
 /* ===================================================================== */
 
@@ -525,65 +522,19 @@ const hm=m=>`${Math.floor(m/60)}h${m%60?String(m%60).padStart(2,'0'):''}`;
 let OFF=0;const QA=new URLSearchParams(location.search).get('agora');
 if(QA){const t=Date.parse(QA+(QA.length<=16?':00':'')+'-03:00');if(!isNaN(t))OFF=t-Date.now()}
 addEventListener('brasa:agora',e=>{if(!QA){OFF=e.detail;upLoja()}});
-function loja(){
-  const s = new Date(Date.now() + OFF + HORARIO.utc * 3600000);
-  const dw = s.getUTCDay();
-  const m = s.getUTCHours() * 60 + s.getUTCMinutes();
-  const hoje = HORARIO.dias.includes(dw);
+function loja(){const L=new Date(Date.now()+OFF+HORARIO.utc*36e5),dw=L.getUTCDay(),m=L.getUTCHours()*60+L.getUTCMinutes(),hoje=HORARIO.dias.includes(dw);
+  if(hoje&&m>=HORARIO.abre&&m<HORARIO.fecha){const f=HORARIO.fecha-m;return{on:true,txt:f<=30?`Aberto · fecha em ${f} min`:`Aberto agora · até ${hm(HORARIO.fecha)}`}}
+  let qd='';if(hoje&&m<HORARIO.abre)qd=`hoje às ${hm(HORARIO.abre)}`;else for(let d=1;d<=7;d++){const w=(dw+d)%7;if(HORARIO.dias.includes(w)){qd=d===1?`amanhã às ${hm(HORARIO.abre)}`:`${DN[w]} às ${hm(HORARIO.abre)}`;break}}
+  return{on:false,txt:`Fechado · abre ${qd}`,qd}}
+let LJ=loja();
+function upLoja(){LJ=loja();const s=document.getElementById('sts');s.classList.toggle('off',!LJ.on);document.getElementById('stt').textContent=LJ.txt;
+  const f=document.getElementById('fch');f.hidden=LJ.on;if(!LJ.on)f.innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b>Estamos fechados agora.</b> A brasa acende ${LJ.qd}. Você já pode montar seu pedido e enviar quando abrirmos.</span>`;
+  bar()}
 
-  let aberto = false;
-
-  if (HORARIO.fecha < HORARIO.abre) {
-    const ontem = (dw - 1 + 7) % 7;
-    const esteDia = hoje && m >= HORARIO.abre;
-    const diaAnterior = HORARIO.dias.includes(ontem) && m < HORARIO.fecha;
-    aberto = esteDia || diaAnterior;
-  } else {
-    aberto = hoje && m >= HORARIO.abre && m < HORARIO.fecha;
-  }
-
-  if (aberto) {
-    const f = HORARIO.fecha - m;
-    return {
-      on: true, 
-      txt: f <= 30 && f > 0 ? `Aberto · fecha em ${f} min` : `Aberto agora · até às ${hm(HORARIO.fecha)}`
-    };
-  }
-
-  let qd = '';
-  if (hoje && m < HORARIO.abre) {
-    qd = `hoje às ${hm(HORARIO.abre)}`;
-  } else {
-    for (let d = 1; d <= 7; d++) {
-      const w = (dw + d) % 7;
-      if (HORARIO.dias.includes(w)) {
-        qd = d === 1 ? `amanhã às ${hm(HORARIO.abre)}` : `às ${hm(HORARIO.abre)}`;
-        break;
-      }
-    }
-  }
-  return { on: false, txt: `Fechado · abre ${qd}` };
-}
-let LJ = loja();
-function upLoja(){
-  LJ = loja();
-  const s = document.getElementById('sts');
-  if (s) s.classList.toggle('off', !LJ.on);
-  const stt = document.getElementById('stt');
-  if (stt) stt.textContent = LJ.txt;
-  const f = document.getElementById('fch');
-  if (f) {
-    f.hidden = LJ.on;
-    if (!LJ.on) f.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><div><b>Loja fechada</b><span>${LJ.txt}</span></div>`;
-  }
-}
-document.addEventListener("DOMContentLoaded", upLoja);
 /* contador do combo (até meia-noite de Salvador) */
 const cdn=document.getElementById('cdn');
-function tick(){ 
-  console.log("A correr tick, hora atual:", new Date().toLocaleTimeString());
-  upLoja(); 
-}
+function tick(){const L=new Date(Date.now()+OFF+HORARIO.utc*36e5),s=86400-(L.getUTCHours()*3600+L.getUTCMinutes()*60+L.getUTCSeconds()),p=v=>String(v).padStart(2,'0');cdn.textContent=`${p(Math.floor(s/3600))}:${p(Math.floor(s%3600/60))}:${p(s%60)}`}
+setInterval(()=>{tick();if(Date.now()%30000<1000)upLoja()},1000);
 
 /* ===== carrinho ===== */
 const tot=document.getElementById('tot'),qt=document.getElementById('qt'),zap=document.getElementById('zap');
