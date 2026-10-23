@@ -759,23 +759,19 @@ function sendOrder() {
   </script>
 
 <script>
-  // Forçar zoom direto na imagem do modal de detalhes
+  // Script definitivo de zoom com base na classe .z
   document.addEventListener('click', function(e) {
     const lbz = e.target.closest('.lbz');
     if (lbz) {
       const img = lbz.querySelector('img');
       if (img) {
-        // Verifica se já está com zoom
-        const isZoomed = img.style.transform === 'scale(2.3)';
-        if (isZoomed) {
-          img.style.transform = 'scale(1)';
-          img.style.transition = 'transform 0.3s ease';
-          lbz.classList.remove('z');
-        } else {
+        lbz.classList.toggle('z');
+        if (lbz.classList.contains('z')) {
           img.style.transform = 'scale(2.3)';
-          img.style.transition = 'transform 0.3s ease';
-          lbz.classList.add('z');
+        } else {
+          img.style.transform = 'scale(1)';
         }
+        img.style.transition = 'transform 0.3s ease';
       }
     }
   }, true);
