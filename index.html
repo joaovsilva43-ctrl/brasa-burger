@@ -756,7 +756,23 @@ function sendOrder() {
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 </script>
-  <link rel="stylesheet" href="/patch.css">
+  </script>
+
+<script>
+  // Script de Zoom para o Brasa Burger
+  document.addEventListener('click', function(e) {
+    const target = e.target.closest('img, .pl, .ad .ic, [data-mb], .ly, .li');
+    if (target) {
+      target.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+      target.style.transform = 'scale(1.2)';
+      setTimeout(() => {
+        target.style.transform = 'scale(1)';
+      }, 350);
+    }
+  });
+</script>
+
+<link rel="stylesheet" href="patch.css">
 <script src="/patch.js"></script>
 <div style="text-align:center; padding:15px; color:#FFF3D1;">
   Desenvolvido por <a href="https://instagram.com/j_victor_dev" target="_blank" style="color:#FFC21A; font-weight:bold;">@j_victor_dev</a>
