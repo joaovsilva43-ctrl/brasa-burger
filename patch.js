@@ -2,7 +2,7 @@
 const WA_NUMERO='';
 (()=>{
 const $=i=>document.getElementById(i),BG=['cl','bk','dp','vg'];
-let FECHADO=false,cxN=0;
+let FECHADO=true,cxN=0; // FECHADO = true força a loja a abrir como "Fechado · abre às 18h"
 const seg=()=>new Date(Date.now()+OFF+HORARIO.utc*36e5).getUTCDay()===1;
 const sync=id=>document.querySelectorAll(`[data-q="${id}"]`).forEach(x=>x.textContent=q[id]||0);
 const add=(id,n=1)=>{q[id]=Math.max(0,(q[id]||0)+n);sync(id);bar(true)};
@@ -36,7 +36,7 @@ $('exsk').onclick=()=>{$('ex').close();add(cur)};
 $('exok').onclick=()=>{const o=I.find(x=>x.id===cur),s=X.filter(x=>$('exl').querySelector(`input[value="${x.id}"]`).checked);$('ex').close();if(!s.length)return add(cur);
   const n=[o.n,...s.map(x=>x.n)].join(' + '),p=o.p+s.reduce((a,x)=>a+x.p,0);let c=all.find(x=>x.cx&&x.n===n);if(!c){c={id:'cx'+(++cxN),c:'Personalizado',n,d:'',p,cx:1};all.push(c)}add(c.id);toast(`${n} entrou no pedido!`)};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-d="1"]');if(b&&BG.includes(b.dataset.id)){e.stopPropagation();abrirEx(b.dataset.id)}},true);
-document.querySelector('.adsec').remove();
+if(document.querySelector('.adsec')) document.querySelector('.adsec').remove();
 
 /* 7-8: painel do carrinho com sugestão */
 const rc=()=>{const it=all.filter(o=>q[o.id]);
@@ -46,17 +46,19 @@ const rc=()=>{const it=all.filter(o=>q[o.id]);
   const T=totais();$('cpt').innerHTML=`<div><dt>Subtotal</dt><dd>${R(T.s)}</dd></div><div><dt>Entrega</dt><dd>${T.f===null?'calculada ao escolher o bairro':R(T.f)}</dd></div><div><dt>Cupom</dt><dd>${cupom&&T.d?'− '+R(T.d):'aplique na finalização'}</dd></div><div class="tt"><dt>Total</dt><dd>${R(T.t)}</dd></div>`};
 $('cp2').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b){const v=b.dataset.v;add(b.dataset.c,v==='x'?-q[b.dataset.c]:+v);rc();return}
   if(e.target.id==='sgb'){['bf','rf'].forEach(id=>{if(!q[id])add(id)});rc()}});
-const bi=document.querySelector('.bi');bi.style.cursor='pointer';bi.setAttribute('role','button');bi.onclick=()=>{rc();$('cp2').showModal()};
+const bi=document.querySelector('.bi');if(bi){bi.style.cursor='pointer';bi.setAttribute('role','button');bi.onclick=()=>{rc();$('cp2').showModal()}};
 $('cpgo').onclick=()=>{$('cp2').close();zap.click()};
 
 /* 9: Pix copia e cola */
 const pgs=document.querySelector('.pgs');
-pgs.insertAdjacentHTML('beforeend','<label><input type="radio" name="pg" value="Pix copia e cola"><span>Pix copia e cola</span></label>');
-pgs.insertAdjacentHTML('afterend','<div class="pixb" id="pixb" hidden><small>Chave Pix (fictícia, só exemplo)</small><code id="pixk">00020126EXEMPLO-FICTICIO-BRASA-BURGER-DEMO</code><button type="button" id="pixc">Copiar</button><p>Envie o comprovante no WhatsApp.</p></div>');
-ckf.addEventListener('change',()=>{$('pixb').hidden=ckf.elements.pg.value!=='Pix copia e cola'});
-$('pixc').onclick=e=>copia($('pixk').textContent,e.target);
+if(pgs){
+  pgs.insertAdjacentHTML('beforeend','<label><input type="radio" name="pg" value="Pix copia e cola"><span>Pix copia e cola</span></label>');
+  pgs.insertAdjacentHTML('afterend','<div class="pixb" id="pixb" hidden><small>Chave Pix (fictícia, só exemplo)</small><code id="pixk">00020126EXEMPLO-FICTICIO-BRASA-BURGER-DEMO</code><button type="button" id="pixc">Copiar</button><p>Envie o comprovante no WhatsApp.</p></div>');
+  ckf.addEventListener('change',()=>{$('pixb').hidden=ckf.elements.pg.value!=='Pix copia e cola'});
+  $('pixc').onclick=e=>copia($('pixk').textContent,e.target);
+}
 
-/* 5-6: prévia da mensagem no lugar do WhatsApp (captura o envio antes do código original) */
+/* 5-6: prévia da mensagem no lugar do WhatsApp */
 ckf.addEventListener('submit',e=>{e.stopImmediatePropagation();e.preventDefault();LJ=loja();const w=bloqueio();if(w){upTot();toast(w);return}
   const v=k=>ckf.elements[k].value.trim(),rules=[['nome',2],['end',5],['bai',1]];if(bai.value==='outro')rules.push(['bo',2]);let first=null;
   rules.forEach(([k,min])=>{const bad=v(k).length<min;$('f-'+k).classList.toggle('bad',bad);if(bad&&!first)first=ckf.elements[k]});
@@ -71,45 +73,55 @@ ckf.addEventListener('submit',e=>{e.stopImmediatePropagation();e.preventDefault(
 $('pvc').onclick=e=>copia($('pvt').textContent,e.target);
 $('pvw').onclick=()=>window.open(`https://wa.me/${WA_NUMERO}?text=${encodeURIComponent($('pvt').textContent)}`,'_blank');
 
-/* 12: Monte seu burger: limites, modelos e camadas */
-const md0=mbDraw;mbDraw=()=>{md0();$('mbcn').textContent=`${mbStack().length} de 12 camadas`};
-$('mbo').addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(!b||b.disabled||+b.dataset.v<0)return;const k=b.dataset.mb;
-  if((k==='pa'||k==='vg')&&mb.pa+mb.vg>=3){e.stopImmediatePropagation();toast('Máximo de 3 carnes por burger.');return}
-  if(mbStack().length>=12){e.stopImmediatePropagation();toast('Limite de 12 camadas atingido.')}},true);
-const r0=$('mbr').onclick;$('mbr').onclick=()=>{r0();while(mb.pa+mb.vg>3)mb.vg?mb.vg--:mb.pa--;for(let g=0;mbStack().length>12&&g<30;g++){const k=['ba','ch','ce','ov','pi'].find(x=>mb[x]>0);if(!k)break;mb[k]--}mbDraw()};
-const PR={'Clássico':{pa:1,vg:0,ch:1,ba:0,ov:0,ce:0,pi:0,to:1,le:1},'Bacon':{pa:1,vg:0,ch:1,ba:2,ov:0,ce:0,pi:0,to:1,le:1},'Veggie':{pa:0,vg:1,ch:1,ba:0,ov:0,ce:0,pi:1,to:1,le:1}};
-$('mbo').insertAdjacentHTML('beforebegin',`<div class="pr3"><span>Comece por um modelo</span>${Object.keys(PR).map(n=>`<button type="button" data-pr="${n}">${n}</button>`).join('')}</div>`);
-document.querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>{Object.assign(mb,PR[b.dataset.pr]);mbDraw()});
+/* 12: Monte seu burger */
+if(typeof mbDraw==='function'){
+  const md0=mbDraw;mbDraw=()=>{md0();if($('mbcn'))$('mbcn').textContent=`${mbStack().length} de 12 camadas`};
+  if($('mbo')) $('mbo').addEventListener('click',e=>{const b=e.target.closest('[data-mb]');if(!b||b.disabled||+b.dataset.v<0)return;const k=b.dataset.mb;
+    if((k==='pa'||k==='vg')&&mb.pa+mb.vg>=3){e.stopImmediatePropagation();toast('Máximo de 3 carnes por burger.');return}
+    if(mbStack().length>=12){e.stopImmediatePropagation();toast('Limite de 12 camadas atingido.')}},true);
+  if($('mbr')){const r0=$('mbr').onclick;$('mbr').onclick=()=>{r0();while(mb.pa+mb.vg>3)mb.vg?mb.vg--:mb.pa--;for(let g=0;mbStack().length>12&&g<30;g++){const k=['ba','ch','ce','ov','pi'].find(x=>mb[x]>0);if(!k)break;mb[k]--}mbDraw()}};
+  const PR={'Clássico':{pa:1,vg:0,ch:1,ba:0,ov:0,ce:0,pi:0,to:1,le:1},'Bacon':{pa:1,vg:0,ch:1,ba:2,ov:0,ce:0,pi:0,to:1,le:1},'Veggie':{pa:0,vg:1,ch:1,ba:0,ov:0,ce:0,pi:1,to:1,le:1}};
+  if($('mbo')) $('mbo').insertAdjacentHTML('beforebegin',`<div class="pr3"><span>Comece por um modelo</span>${Object.keys(PR).map(n=>`<button type="button" data-pr="${n}">${n}</button>`).join('')}</div>`);
+  document.querySelectorAll('[data-pr]').forEach(b=>b.onclick=()=>{Object.assign(mb,PR[b.dataset.pr]);mbDraw()});
+}
 
-/* 14-16: menu de categorias, 2 colunas em porções/bebidas, etiqueta vegetariano */
+/* 14-16: Menu e categorias */
 const cats=[...document.querySelectorAll('h2.cat')];cats.forEach(h=>h.id='c-'+h.textContent.trim().toLowerCase().replace(/\W+/g,''));
-document.querySelector('.cb').id='c-combo';
-$('menu').insertAdjacentHTML('beforebegin',`<nav class="cn" aria-label="Categorias">${[['c-combo','Combo do Dia'],...cats.map(h=>[h.id,h.textContent])].map(([i,t])=>`<a href="#${i}">${t}</a>`).join('')}</nav>`);
-if(cats[1]&&cats[2]){const wrap=document.createElement('div');wrap.className='duo';cats[1].before(wrap);[cats[1],cats[2]].forEach(h=>{const s=document.createElement('section');s.append(h,h.nextElementSibling);wrap.append(s)})}
-document.querySelector('[data-testid="menu-item-vg"] h3').insertAdjacentHTML('afterend','<span class="tg">Vegetariano</span>');
-document.querySelectorAll('.pl img').forEach(i=>{i.width=i.height=600});
+if(document.querySelector('.cb')) document.querySelector('.cb').id='c-combo';
+if($('menu')) $('menu').insertAdjacentHTML('beforebegin',`<nav class="cn" aria-label="Categorias">${[['c-combo','Combo do Dia'],...cats.map(h=>[h.id,h.textContent])].map(([i,t])=>`<a href="#${i}">${t}</a>`).join('')}</nav>`);
 
-/* 17: rodapé completo, interruptor e botão flutuante */
-document.querySelector('.ft').insertAdjacentHTML('beforeend',`<div class="ftx">
-<div><h4>Onde estamos</h4><p>Rua das Brasas, 123 — Centro<br>Salvador · BA <small>(endereço fictício)</small></p><iframe title="Mapa" loading="lazy" width="100%" height="180" src="https://www.openstreetmap.org/export/embed.html?bbox=-38.52%2C-12.99%2C-38.49%2C-12.96&amp;layer=mapnik"></iframe></div>
-<div><h4>Horário</h4><p>Terça a domingo, 18h às 23h30<br>Fechado às segundas</p><p>Instagram: @brasaburger.demo <small>(fictício)</small></p>
-<label class="sw"><input type="checkbox" id="dmt"><span>Ver como fica quando a loja está fechada</span></label></div>
-<p class="cr">Projeto de demonstração criado por <a href="https://instagram.com/j_victor_dev" target="_blank" rel="noopener">@j_victor_dev</a></p></div>`);
-$('dmt').onchange=e=>{FECHADO=e.target.checked;upLoja();toast(FECHADO?'Modo loja fechada ligado':'Modo normal: loja aberta')};
-$('wpf').onclick=()=>toast('Demonstração: em um site real, este botão abriria o WhatsApp da loja');
-new IntersectionObserver(([e])=>$('wpf').classList.toggle('h',e.isIntersecting)).observe($('monte'));
+/* 17: Rodapé */
+const ft=document.querySelector('.ft');
+if(ft){
+  ft.insertAdjacentHTML('beforeend',`<div class="ftx">
+  <div><h4>Onde estamos</h4><p>Rua das Brasas, 123 — Centro<br>Salvador · BA <small>(endereço fictício)</small></p><iframe title="Mapa" loading="lazy" width="100%" height="180" src="https://www.openstreetmap.org/export/embed.html?bbox=-38.52%2C-12.99%2C-38.49%2C-12.96&amp;layer=mapnik"></iframe></div>
+  <div><h4>Horário</h4><p>Terça a domingo, 18h às 23h30<br>Fechado às segundas</p><p>Instagram: @brasaburger.demo <small>(fictício)</small></p>
+  <label class="sw"><input type="checkbox" id="dmt" ${FECHADO?'checked':''}><span>Ver como fica quando a loja está fechada</span></label></div>
+  <p class="cr">Projeto de demonstração criado por <a href="https://instagram.com/j_victor_dev" target="_blank" rel="noopener">@j_victor_dev</a></p></div>`);
+  if($('dmt')) $('dmt').onchange=e=>{FECHADO=e.target.checked;upLoja();toast(FECHADO?'Modo loja fechada ligado':'Modo normal: loja aberta')};
+}
 
-/* 18: LÓGICA DE ZOOM NAS CAMADAS DO HAMBÚRGUER E BATATA */
+/* 18: EFETO DE ZOOM GERAL AO CLICAR */
+const st=document.createElement('style');
+st.textContent=`
+  img, [data-mb], .layer, .mb-layer, .pl article {
+    transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  }
+  .brasa-zoom {
+    transform: scale(1.3) !important;
+    z-index: 99 !important;
+  }
+`;
+document.head.appendChild(st);
+
 document.addEventListener('click', e => {
-  const target = e.target.closest('#mbv img, .pl img, .hero img');
-  if (target) {
-    target.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    target.style.transform = 'scale(1.25)';
-    setTimeout(() => {
-      target.style.transform = 'scale(1)';
-    }, 400);
+  const el = e.target.closest('img, [data-mb], .layer, .mb-layer');
+  if (el) {
+    el.classList.add('brasa-zoom');
+    setTimeout(() => el.classList.remove('brasa-zoom'), 350);
   }
 });
 
-upLoja();mbDraw();
+upLoja();
+if(typeof mbDraw==='function') mbDraw();
 })();
